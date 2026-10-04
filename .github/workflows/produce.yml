@@ -1,0 +1,55 @@
+name: Produce a review Short
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 12 * * *'
+  push:
+    paths:
+      - '.github/workflows/produce.yml'
+      - 'cloud.py'
+      - 'data/jobs/pets-001.json'
+permissions:
+  contents: write
+concurrency:
+  group: momentmeter-production
+  cancel-in-progress: false
+jobs:
+  produce:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install free media tools
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg espeak-ng fonts-dejavu-core
+      - name: Validate code
+        run: python3 -m unittest discover -s tests -v
+      - name: Produce next queued video
+        id: render
+        env:
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+          DRIVE_FOLDER_ID: ${{ vars.DRIVE_FOLDER_ID }}
+        run: python3 cloud.py produce
+      - name: Save video for review
+        if: steps.render.outputs.job != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: review-${{ steps.render.outputs.job }}
+          path: |
+            output/${{ steps.render.outputs.job }}/short.mp4
+            output/${{ steps.render.outputs.job }}/review.json
+            output/${{ steps.render.outputs.job }}/upload.txt
+          if-no-files-found: error
+          retention-days: 30
+      - name: Record completed render
+        if: steps.render.outputs.job != ''
+        env:
+          JOB_ID: ${{ steps.render.outputs.job }}
+        run: |
+          python3 cloud.py record --job "$JOB_ID"
+          git config user.name 'MomentMeter production'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/cloud-runs/
+          git commit -m "Record cloud render $JOB_ID"
+          git push
