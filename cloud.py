@@ -1,6 +1,7 @@
 """GitHub-hosted production and optional private Google Drive delivery."""
 import argparse
 import datetime as dt
+import hashlib
 import json
 import os
 import urllib.parse
@@ -23,16 +24,29 @@ class MediaRedirect(urllib.request.HTTPRedirectHandler):
         media_url(newurl)
         return super().redirect_request(req, fp, code, msg, headers, newurl)
 
+class PrivateRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        raise ValueError('Private Drive media redirects require explicit review')
+
 def download(clip):
     if clip.get('rights_verified') is not True:
         raise ValueError('Usage rights must be verified before download')
     destination = m.local(clip['file'])
     destination.parent.mkdir(parents=True, exist_ok=True)
     temp = destination.with_suffix('.part')
-    opener = urllib.request.build_opener(MediaRedirect())
+    if clip.get('drive_file_id'):
+        import re
+        if not re.fullmatch(r'[A-Za-z0-9_-]+', clip['drive_file_id']):
+            raise ValueError('Invalid Drive file ID')
+        opener = urllib.request.build_opener(PrivateRedirect())
+        request = urllib.request.Request('https://www.googleapis.com/drive/v3/files/' + clip['drive_file_id'] + '?alt=media', headers={'Authorization': 'Bearer ' + drive_token()})
+    else:
+        opener = urllib.request.build_opener(MediaRedirect())
+        request = media_url(clip['download_url'])
     try:
-        with opener.open(media_url(clip['download_url']), timeout=120) as response, temp.open('wb') as output:
-            media_url(response.url)
+        with opener.open(request, timeout=120) as response, temp.open('wb') as output:
+            if not clip.get('drive_file_id'):
+                media_url(response.url)
             count = 0
             while block := response.read(1024 * 1024):
                 count += len(block)
@@ -94,7 +108,7 @@ def produce():
     m.render(data)
     output = m.ROOT / 'output' / data['id']
     review = json.loads((output / 'review.json').read_text())
-    review.update(workflow_run_id=os.environ.get('GITHUB_RUN_ID'), artifact_name='review-' + data['id'], drive_file=drive_upload(output / 'short.mp4', data['id']))
+    review.update(job_hash=hashlib.sha256(json.dumps(data, sort_keys=True).encode()).hexdigest(), workflow_run_id=os.environ.get('GITHUB_RUN_ID'), artifact_name='review-' + data['id'], drive_file=drive_upload(output / 'short.mp4', data['id']))
     (output / 'review.json').write_text(json.dumps(review, indent=2))
     if os.environ.get('GITHUB_OUTPUT'):
         with Path(os.environ['GITHUB_OUTPUT']).open('a') as stream:
