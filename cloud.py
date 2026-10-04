@@ -5,6 +5,8 @@ import json
 import os
 import urllib.parse
 import urllib.request
+import urllib.error
+import subprocess
 from pathlib import Path
 import momentmeter as m
 
@@ -86,7 +88,9 @@ def produce():
         return
     m.validate(data, draft=True)
     for clip in data['clips']:
+        print('Downloading rank', clip['rank'], flush=True)
         download(clip)
+    print('Rendering', data['id'], flush=True)
     m.render(data)
     output = m.ROOT / 'output' / data['id']
     review = json.loads((output / 'review.json').read_text())
@@ -114,5 +118,11 @@ if __name__ == '__main__':
     os.chdir(m.ROOT)
     try:
         produce() if args.command == 'produce' else record(args.job)
-    except Exception:
-        parser.exit(1, 'Cloud operation failed. Check source availability, media duration, and Google connection. Credentials are not logged.\n')
+    except urllib.error.HTTPError as error:
+        parser.exit(1, f'Cloud HTTP request failed: status {error.code}. Credentials are not logged.\n')
+    except ValueError as error:
+        parser.exit(1, f'Validation failed: {error}\n')
+    except subprocess.CalledProcessError as error:
+        parser.exit(1, 'Media processing failed: ' + error.stderr[-1800:] + '\n')
+    except Exception as error:
+        parser.exit(1, f'Cloud operation failed ({type(error).__name__}). Credentials are not logged.\n')
