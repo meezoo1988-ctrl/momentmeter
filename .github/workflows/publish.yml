@@ -1,0 +1,62 @@
+name: Upload a reviewed Short
+on:
+  workflow_dispatch:
+    inputs:
+      job:
+        description: Reviewed job ID
+        required: true
+        default: pets-001
+      run_id:
+        description: Production run ID from data/cloud-runs
+        required: true
+      approved_hash:
+        description: SHA-256 of the video you watched and approved
+        required: true
+      privacy:
+        type: choice
+        options: [private, unlisted, public]
+        default: private
+        required: true
+      made_for_kids:
+        description: Select the actual audience classification
+        type: choice
+        options: ['false', 'true']
+        required: true
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: momentmeter-production
+  cancel-in-progress: false
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download the reviewed artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+          JOB_ID: ${{ inputs.job }}
+          RUN_ID: ${{ inputs.run_id }}
+        run: |
+          python3 -c 'import os,re; assert re.fullmatch(r"[a-z0-9-]+",os.environ["JOB_ID"]); assert re.fullmatch(r"[0-9]+",os.environ["RUN_ID"])'
+          gh run download "$RUN_ID" --repo "$GITHUB_REPOSITORY" --name "review-$JOB_ID" --dir "output/$JOB_ID"
+      - name: Upload approved bytes to the verified channel
+        env:
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+          JOB_ID: ${{ inputs.job }}
+          RUN_ID: ${{ inputs.run_id }}
+          APPROVED_HASH: ${{ inputs.approved_hash }}
+          PRIVACY: ${{ inputs.privacy }}
+          MADE_FOR_KIDS: ${{ inputs.made_for_kids }}
+        run: python3 youtube_upload.py --job "$JOB_ID" --run-id "$RUN_ID" --approved-hash "$APPROVED_HASH" --privacy "$PRIVACY" --made-for-kids "$MADE_FOR_KIDS"
+      - name: Record YouTube upload
+        run: |
+          git config user.name 'MomentMeter production'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/publications/
+          git commit -m 'Record reviewed YouTube upload'
+          git push
