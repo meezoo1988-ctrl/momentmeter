@@ -22,13 +22,26 @@ changed by the uploader. Without the folder variable, delivery uses the review
 artifact. If configured OAuth fails, the run fails instead of claiming delivery.
 Connecting Drive to ChatGPT does not automatically authorize the GitHub runner.
 
-## YouTube
+## Reviewed YouTube uploads
 
-The current release generates review files and upload text. It does not upload
-to YouTube. The channel's browser session is not a reusable server OAuth grant.
-Automated uploading needs YouTube Data API authorization separately; an API key
-alone cannot upload or change a channel. Review the first real render before
-publishing. Public automated publishing is not yet enabled.
+The Upload a reviewed Short workflow is manual-dispatch only. Select the exact
+production run, job, reviewed video SHA-256, audience classification, and privacy.
+It verifies the file against the committed render record, checks that metadata
+has not changed, and verifies the OAuth channel ID before uploading. It defaults
+to private and records the returned privacy, not merely the requested value.
+The same Google secrets require youtube.upload and youtube.readonly scopes and
+YouTube Data API enabled. A browser login or API key alone cannot grant uploading.
+The uploader is implemented and unit-tested, but no authenticated upload has
+been tested or completed. New unaudited API projects may be restricted to private
+uploads: https://developers.google.com/youtube/v3/docs/videos/insert.
+If upload succeeds but its record cannot be committed, reconcile in Studio
+before retrying to prevent a duplicate upload.
+
+For privately stored source clips, set drive_file_id on a clip. The runner uses
+the OAuth account to download it instead of its public download_url. The app
+must have access to the selected file; drive.file does not expose arbitrary files
+already in your Drive. Source rights fields remain required. Drive connection
+in ChatGPT and runner OAuth are separate grants.
 
 ## Current first video
 
@@ -36,4 +49,6 @@ pets-001 uses five Pexels source pages, their displayed free-download URLs, and
 original English commentary. Source license was checked on 2026-10-04:
 https://www.pexels.com/license/. Final framing and narration need visual review.
 The speech engine is free but synthetic; this first run tests production quality.
-Source availability and the first hosted run still require verification.
+The first two hosted production attempts failed at source rank 5 with HTTP 403.
+No real video was rendered. The job is blocked until source access is resolved;
+the daily workflow will skip it instead of repeating a known failing download.
