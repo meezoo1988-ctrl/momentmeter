@@ -4,7 +4,7 @@
   "description": "Our subjective countdown of everyday pet play. Original commentary by MomentMeter. Licensed source credits below.",
   "language": "en",
   "hook": "Five playful pets. Pick your winner.",
-  "status": "ready",
+  "status": "blocked",
   "clips": [
     {
       "rank": 5,
@@ -76,5 +76,6 @@
       "rights_checked_at": "2026-10-04",
       "start": 0
     }
-  ]
+  ],
+  "blocked_reason": "Hosted download of rank 5 returned HTTP 403 on 2026-10-04; supply authorized source access before returning this job to ready."
 }
