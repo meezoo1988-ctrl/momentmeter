@@ -1,0 +1,10 @@
+.env
+__pycache__/
+assets/*
+!assets/.gitkeep
+output/
+secrets/
+*.wav
+*.mp4
+*.sqlite*
+state/

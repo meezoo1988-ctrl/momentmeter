@@ -1,0 +1,15 @@
+{
+  "id": "first-short",
+  "title": "5 animal moments worth watching twice #Shorts",
+  "description": "Original commentary by MomentMeter. Clip sources are recorded in the project rights log.",
+  "language": "en",
+  "hook": "Five animal moments worth watching twice. Here is our countdown.",
+  "status": "draft",
+  "clips": [
+    {"rank": 5, "label": "The perfect leap", "narration": "Number five. Watch the timing of this jump. One small pause makes the whole moment.", "file": "assets/05.mp4", "source_url": "", "license_url": "", "license": "", "rights_verified": false, "start": 0},
+    {"rank": 4, "label": "Unexpected teamwork", "narration": "Number four. These two turn an ordinary moment into surprisingly good teamwork.", "file": "assets/04.mp4", "source_url": "", "license_url": "", "license": "", "rights_verified": false, "start": 0},
+    {"rank": 3, "label": "The curious look", "narration": "Number three. That curious look almost feels like a question directed at the camera.", "file": "assets/03.mp4", "source_url": "", "license_url": "", "license": "", "rights_verified": false, "start": 0},
+    {"rank": 2, "label": "A clever move", "narration": "Number two. Watch closely. The clever part happens just before the end.", "file": "assets/02.mp4", "source_url": "", "license_url": "", "license": "", "rights_verified": false, "start": 0},
+    {"rank": 1, "label": "The winning moment", "narration": "And number one. This is our favorite moment. Which one would you put first?", "file": "assets/01.mp4", "source_url": "", "license_url": "", "license": "", "rights_verified": false, "start": 0}
+  ]
+}

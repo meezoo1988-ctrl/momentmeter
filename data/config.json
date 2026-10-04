@@ -1,0 +1,13 @@
+{
+  "channel_name": "MomentMeter",
+  "channel_id": null,
+  "channel_audit": "pending",
+  "daily_target": 1,
+  "width": 1080,
+  "height": 1920,
+  "min_seconds": 25,
+  "max_seconds": 40,
+  "music": false,
+  "publishing": "manual_youtube_studio",
+  "timezone": "Asia/Riyadh"
+}
