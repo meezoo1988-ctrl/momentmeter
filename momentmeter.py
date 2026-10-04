@@ -94,6 +94,11 @@ def render(data):
             run(['ffmpeg', '-y', '-i', local(clip['voice_file']), '-ar', '48000', '-ac', '1', voice])
         elif voice_tool:
             run([voice_tool, '-v', 'en-us', '-s', '175', '-w', voice, sentence])
+        elif os.name == 'nt':
+            text_file = out / f'narration-{i}.txt'
+            text_file.write_text(sentence, encoding='utf-8')
+            run(['powershell.exe', '-NoProfile', '-File', ROOT / 'windows-voice.ps1',
+                 '-TextFile', text_file, '-OutputFile', voice])
         else:
             raise ValueError('Install espeak-ng or provide a voice_file per clip; first voice includes hook')
         voices.append(voice)
@@ -180,12 +185,12 @@ def main():
         if args.command == 'check':
             for cmd in ['ffmpeg', 'ffprobe', 'git']:
                 print(cmd, 'OK' if shutil.which(cmd) else 'MISSING')
-            print('voice:', shutil.which('espeak-ng') or shutil.which('espeak') or 'provide recorded voice_file')
+            print('voice:', shutil.which('espeak-ng') or shutil.which('espeak') or ('Windows System.Speech' if os.name == 'nt' else 'provide recorded voice_file'))
         elif args.command == 'sync':
             # Explicit allowlist prevents accidental credentials/media commits.
             run(['git', 'add', 'data'])
             if run(['git', 'diff', '--cached', '--name-only']).strip():
-                run(['git', 'commit', '-m', 'Update MomentMeter production data'])
+                run(['git', 'commit', '--only', '-m', 'Update MomentMeter production data', '--', 'data'])
             run(['git', 'push'])
             print('Production data synced to GitHub')
         else:
