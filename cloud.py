@@ -42,7 +42,7 @@ def download(clip):
         request = urllib.request.Request('https://www.googleapis.com/drive/v3/files/' + clip['drive_file_id'] + '?alt=media', headers={'Authorization': 'Bearer ' + drive_token()})
     else:
         opener = urllib.request.build_opener(MediaRedirect())
-        request = media_url(clip['download_url'])
+        request = urllib.request.Request(media_url(clip['download_url']), headers={'User-Agent': 'MomentMeter/1.0'})
     try:
         with opener.open(request, timeout=120) as response, temp.open('wb') as output:
             if not clip.get('drive_file_id'):
