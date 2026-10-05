@@ -50,5 +50,11 @@ original English commentary. Source license was checked on 2026-10-04:
 https://www.pexels.com/license/. Final framing and narration need visual review.
 The speech engine is free but synthetic; this first run tests production quality.
 The first two hosted production attempts failed at source rank 5 with HTTP 403.
-No real video was rendered. The job is blocked until source access is resolved;
-the daily workflow will skip it instead of repeating a known failing download.
+On 2026-10-05, all five sources downloaded and a local review render completed:
+29.776 seconds, H.264 1080x1920, AAC, 24,255,126 bytes. Sample frames were visually
+checked; complete motion/audio review and publication are still pending.
+Public source requests now identify the application as MomentMeter/1.0; a real
+urllib range request succeeded with this header. Hosted-run behavior is not yet
+retested. The job stays blocked to prevent an unverified hosted rerun.
+Drive plugin installation is confirmed, but file actions are not exposed to this
+session. No Drive upload or YouTube upload was completed.
